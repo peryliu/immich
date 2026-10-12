@@ -1,7 +1,7 @@
 import { Selectable } from 'kysely';
 import { PersonUser } from 'src/database.js';
+import { OAuthProfile } from 'src/dtos/auth.dto.js';
 import { PersonUserRole } from 'src/dtos/person.dto.js';
-import { OAuthProfile } from 'src/repositories/oauth.repository.js';
 import { ActivityTable } from 'src/schema/tables/activity.table.js';
 import { AlbumUserTable } from 'src/schema/tables/album-user.table.js';
 import { AlbumTable } from 'src/schema/tables/album.table.js';

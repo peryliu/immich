@@ -1,4 +1,4 @@
-import { OAuthProfile } from 'src/repositories/oauth.repository.js';
+import { OAuthProfile } from 'src/dtos/auth.dto.js';
 import { OAuthProfileLike } from 'test/factories/types.js';
 import { newUuid } from 'test/small.factory.js';
 
@@ -18,6 +18,7 @@ export class OAuthProfileFactory {
       family_name: 'Family',
       email: `oauth-${sub}@immich.cloud`,
       email_verified: true,
+      defaults: { immich_quota_bytes: null },
       ...dto,
     });
   }
