@@ -1,0 +1,61 @@
+# Personal build of the Android app with the post-quantum TLS change on this branch.
+# Based on the Android job in build-mobile.yml, without the org token, self-hosted runner and signing secrets.
+name: Build Android (PQ TLS)
+
+on:
+  push:
+    branches: [android-pq-tls]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - name: Free disk space
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Mise
+        uses: immich-app/devtools/actions/use-mise@06a9ef925332c91be647d6256642b86b398592c8 # use-mise-action-v3.2.1
+        with:
+          github_token: ${{ github.token }}
+          working_directory: ./mobile
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          packages: ''
+
+      - name: Install dependencies
+        run: mise //mobile:install:ci
+
+      - name: Perform codegen
+        run: mise //mobile:codegen
+
+      - name: Build APK
+        working-directory: ./mobile
+        env:
+          # Installs as app.alextran.immich.prpq ("Immich PR pq") next to the official app.
+          PR_NUMBER: pq
+        run: flutter build apk --release --split-per-abi --target-platform android-arm64
+
+      - name: Upload APK
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: immich-android-pq-apk
+          path: mobile/build/app/outputs/flutter-apk/*.apk
+          retention-days: 14

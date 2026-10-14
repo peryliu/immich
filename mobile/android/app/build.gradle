@@ -87,6 +87,7 @@ flutter {
 dependencies {
   implementation libs.okhttp
   implementation libs.cronet.embedded
+  implementation libs.conscrypt.android
   implementation libs.media3.datasource.okhttp
   implementation libs.media3.datasource.cronet
   implementation libs.kotlinx.coroutines.android

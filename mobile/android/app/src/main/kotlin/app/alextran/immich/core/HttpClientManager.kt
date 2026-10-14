@@ -23,6 +23,7 @@ import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import org.chromium.net.CronetEngine
+import org.conscrypt.Conscrypt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
@@ -355,9 +356,11 @@ object HttpClientManager {
     managerFactory.init(null as KeyStore?)
     val trustManager = managerFactory.trustManagers.filterIsInstance<X509TrustManager>().first()
 
-    val sslContext = SSLContext.getInstance("TLS")
+    val sslContext = SSLContext.getInstance("TLS", Conscrypt.newProvider())
       .apply { init(arrayOf(DynamicKeyManager()), arrayOf(trustManager), null) }
-    HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.socketFactory)
+    val socketFactory = sslContext.socketFactory
+    Conscrypt.setNamedGroups(socketFactory, arrayOf("X25519MLKEM768", "X25519", "P-256", "P-384"))
+    HttpsURLConnection.setDefaultSSLSocketFactory(socketFactory)
 
     return OkHttpClient.Builder()
       .cookieJar(cookieJar)
@@ -375,7 +378,7 @@ object HttpClientManager {
       .connectionPool(connectionPool)
       .dispatcher(Dispatcher().apply { maxRequestsPerHost = MAX_REQUESTS_PER_HOST })
       .cache(Cache(cacheDir.apply { mkdirs() }, CACHE_SIZE_BYTES))
-      .sslSocketFactory(sslContext.socketFactory, trustManager)
+      .sslSocketFactory(socketFactory, trustManager)
       .build()
   }
 
