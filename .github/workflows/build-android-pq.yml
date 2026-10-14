@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -60,14 +60,3 @@ jobs:
           path: mobile/build/app/outputs/flutter-apk/*.apk
           retention-days: 14
 
-      # A release asset can be downloaded straight from a phone browser, unlike a zipped workflow artifact.
-      - name: Publish as release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SHA: ${{ github.sha }}
-        run: |
-          gh release delete android-pq-latest --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag || true
-          gh release create android-pq-latest mobile/build/app/outputs/flutter-apk/*.apk \
-            --repo "$GITHUB_REPOSITORY" --target "$SHA" --prerelease \
-            --title "Immich Android (PQ TLS) personal build" \
-            --notes "Built from $SHA on branch android-pq-tls. Installs as app.alextran.immich.prpq next to the official app."
